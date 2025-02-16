@@ -7,10 +7,11 @@ object BuildStructureExportPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   object autoImport {
-    val exportBuildStructure = taskKey[Unit]("Exports all projects in JSON format with dependencies and compiler options")
+    val exportBuildStructure =
+      taskKey[Unit]("Exports all projects in JSON format with dependencies and compiler options")
   }
 
-  import autoImport._
+  import autoImport.*
 
   override lazy val projectSettings = Seq(
     exportBuildStructure := Def.taskDyn {
@@ -31,19 +32,20 @@ object BuildStructureExportPlugin extends AutoPlugin {
           )
         }
         // main project
-        val externalDependencies = libraryDependencies.in(projectRef, Compile).get(structureData).getOrElse(Seq.empty).map { dep =>
-          DependencyExport(
-            name = dep.name,
-            organization = dep.organization,
-            revision = dep.revision,
-            crossVersion = dep.crossVersion match {
-              case _: CrossVersion.Binary => "binary"
-              case _: CrossVersion.Full => "full"
-              case CrossVersion.Disabled => "none"
-              case _ => "unknown"
-            }
-          )
-        }
+        val externalDependencies =
+          libraryDependencies.in(projectRef, Compile).get(structureData).getOrElse(Seq.empty).map { dep =>
+            DependencyExport(
+              name = dep.name,
+              organization = dep.organization,
+              revision = dep.revision,
+              crossVersion = dep.crossVersion match {
+                case _: CrossVersion.Binary => "binary"
+                case _: CrossVersion.Full   => "full"
+                case CrossVersion.Disabled  => "none"
+                case _                      => "unknown"
+              }
+            )
+          }
         val javacOptionsValue = javacOptions.in(projectRef, Compile).get(structureData).get.value
         val scalacOptionsValue = scalacOptions.in(projectRef, Compile).get(structureData).get.value
         val mainProjectExport = ProjectExport(
@@ -62,19 +64,20 @@ object BuildStructureExportPlugin extends AutoPlugin {
         )
 
         // test project
-        val testExternalDependencies = libraryDependencies.in(projectRef, Test).get(structureData).getOrElse(Seq.empty).map { dep =>
-          DependencyExport(
-            name = dep.name,
-            organization = dep.organization,
-            revision = dep.revision,
-            crossVersion = dep.crossVersion match {
-              case _: CrossVersion.Binary => "binary"
-              case _: CrossVersion.Full => "full"
-              case CrossVersion.Disabled => "none"
-              case _ => "unknown"
-            }
-          )
-        }
+        val testExternalDependencies =
+          libraryDependencies.in(projectRef, Test).get(structureData).getOrElse(Seq.empty).map { dep =>
+            DependencyExport(
+              name = dep.name,
+              organization = dep.organization,
+              revision = dep.revision,
+              crossVersion = dep.crossVersion match {
+                case _: CrossVersion.Binary => "binary"
+                case _: CrossVersion.Full   => "full"
+                case CrossVersion.Disabled  => "none"
+                case _                      => "unknown"
+              }
+            )
+          }
         val testJavacOptionsValue = javacOptions.in(projectRef, Test).get(structureData).get.value
         val testScalacOptionsValue = scalacOptions.in(projectRef, Test).get(structureData).get.value
         val testProjectExport = ProjectExport(
