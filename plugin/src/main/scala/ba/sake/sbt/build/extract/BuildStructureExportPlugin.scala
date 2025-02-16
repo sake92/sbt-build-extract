@@ -16,12 +16,12 @@ object BuildStructureExportPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     exportBuildStructure := Def.taskDyn {
       val log = streams.value.log
-      val stateValue = state.value
+
       val project = thisProject.value
-      val testProject = thisProject.in(Test).value
       val projectRef = thisProjectRef.value
-      val structure = Project.structure(stateValue)
-      val structureData = structure.data
+      // val stateValue = state.value
+      // val structure = Project.structure(stateValue)
+      // val structureData = structure.data
       log.info(s"Extracting information for project ${project.id}...")
 
       Def.task {
@@ -33,7 +33,7 @@ object BuildStructureExportPlugin extends AutoPlugin {
         }
         // main project
         val externalDependencies =
-          libraryDependencies.in(projectRef, Compile).get(structureData).getOrElse(Seq.empty).map { dep =>
+          (projectRef / Compile / libraryDependencies).value.map { dep =>
             DependencyExport(
               name = dep.name,
               organization = dep.organization,
@@ -46,26 +46,25 @@ object BuildStructureExportPlugin extends AutoPlugin {
               }
             )
           }
-        val javacOptionsValue = javacOptions.in(projectRef, Compile).get(structureData).get.value
-        val scalacOptionsValue = scalacOptions.in(projectRef, Compile).get(structureData).get.value
         val mainProjectExport = ProjectExport(
+          scope = "compile",
           id = project.id,
           base = project.base.getAbsolutePath,
-          name = name.in(projectRef, Compile).get(structureData).getOrElse(project.id),
-          scalaVersion = scalaVersion.in(projectRef, Compile).get(structureData),
-          organization = organization.in(projectRef, Compile).get(structureData),
-          version = version.in(projectRef, Compile).get(structureData),
+          name = (projectRef / Compile / name).value,
+          scalaVersion = (projectRef / Compile / scalaVersion).value,
+          organization = (projectRef / Compile / organization).value,
+          version = (projectRef / Compile / version).value,
           //  publishTo = publishTo.in(projectRef).get(structureData).map(_.), // TODO
-          homepage = homepage.in(projectRef, Compile).get(structureData).flatten.map(_.toString),
+          homepage = (projectRef / Compile / homepage).value.map(_.toString),
           externalDependencies = externalDependencies,
           interProjectDependencies = interProjectDependencies,
-          javacOptions = javacOptionsValue,
-          scalacOptions = scalacOptionsValue
+          javacOptions = (projectRef / Compile / javacOptions).value,
+          scalacOptions = (projectRef / Compile / scalacOptions).value
         )
 
         // test project
         val testExternalDependencies =
-          libraryDependencies.in(projectRef, Test).get(structureData).getOrElse(Seq.empty).map { dep =>
+          (projectRef / Test / libraryDependencies).value.map { dep =>
             DependencyExport(
               name = dep.name,
               organization = dep.organization,
@@ -78,21 +77,20 @@ object BuildStructureExportPlugin extends AutoPlugin {
               }
             )
           }
-        val testJavacOptionsValue = javacOptions.in(projectRef, Test).get(structureData).get.value
-        val testScalacOptionsValue = scalacOptions.in(projectRef, Test).get(structureData).get.value
         val testProjectExport = ProjectExport(
-          id = testProject.id + "-test",
-          base = testProject.base.getAbsolutePath,
-          name = name.in(projectRef, Test).get(structureData).getOrElse(testProject.id),
-          scalaVersion = scalaVersion.in(projectRef, Test).get(structureData),
-          organization = organization.in(projectRef, Test).get(structureData),
-          version = version.in(projectRef, Test).get(structureData),
+          scope = "test",
+          id = project.id,
+          base = project.base.getAbsolutePath,
+          name = (projectRef / Test / name).value,
+          scalaVersion = (projectRef / Test / scalaVersion).value,
+          organization = (projectRef / Test / organization).value,
+          version = (projectRef / Test / version).value,
           //  publishTo = publishTo.in(projectRef).get(structureData).map(_.), // TODO
-          homepage = homepage.in(projectRef, Test).get(structureData).flatten.map(_.toString),
+          homepage = (projectRef / Test / homepage).value.map(_.toString),
           externalDependencies = testExternalDependencies,
           interProjectDependencies = interProjectDependencies,
-          javacOptions = testJavacOptionsValue,
-          scalacOptions = testScalacOptionsValue
+          javacOptions = (projectRef / Test / javacOptions).value,
+          scalacOptions = (projectRef / Test / scalacOptions).value
         )
 
         val projectExports = Seq(mainProjectExport, testProjectExport)

@@ -11,12 +11,13 @@ object BuildStructureExport {
 }
 
 case class ProjectExport(
+    scope: String,
     id: String,
     base: String,
     name: String,
-    scalaVersion: Option[String],
-    organization: Option[String],
-    version: Option[String],
+    scalaVersion: String,
+    organization: String,
+    version: String,
     // publishTo: String, // TODO
     homepage: Option[String],
     externalDependencies: Seq[DependencyExport],
