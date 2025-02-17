@@ -4,21 +4,24 @@ import upickle.default.{ReadWriter, macroRW}
 
 case class ProjectExport(
     id: String,
-    base: String,
+    base: String, // base directory
     name: String,
-    description: String,
+    javacOptions: Seq[String],
     scalaVersion: String,
+    scalacOptions: Seq[String],
+    interProjectDependencies: Seq[InterProjectDependencyExport],
+    externalDependencies: Seq[DependencyExport],
+    repositories: Seq[String], // custom maven repos
+    resourceDirs: Seq[String],
+    testResourceDirs: Seq[String],
+    // publish stuff
     organization: String, // groupId
     artifactName: String,
     artifactType: String, // jar, war ..
     artifactClassifier: Option[String], // sources, javadoc ..
     version: String,
+    description: String,
     homepage: Option[String],
-    externalDependencies: Seq[DependencyExport],
-    interProjectDependencies: Seq[InterProjectDependencyExport],
-    javacOptions: Seq[String],
-    scalacOptions: Seq[String],
-    repositories: Seq[String],
     developers: Seq[DeveloperExport],
     licenses: Seq[LicenseExport],
     scmInfo: Option[ScmInfoExport]

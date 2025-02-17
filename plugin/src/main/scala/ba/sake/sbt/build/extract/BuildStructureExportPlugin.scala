@@ -19,11 +19,11 @@ object BuildStructureExportPlugin extends AutoPlugin {
 
       val project = thisProject.value
       val projectRef = thisProjectRef.value
-      // val stateValue = state.value
-      // val structure = Project.structure(stateValue)
-      // val structureData = structure.data
+      //val stateValue = state.value
+      //val structure = Project.structure(stateValue)
+      //val structureData = structure.data
       log.info(s"Extracting information for project ${project.id}...")
-
+      
       Def.task {
         val interProjectDependencies = project.referenced.map { dep =>
           InterProjectDependencyExport(
@@ -52,7 +52,7 @@ object BuildStructureExportPlugin extends AutoPlugin {
         }
 
         // main project
-        val externalDependencies =
+        val externalDependencies = {
           (projectRef / libraryDependencies).value.map { dep =>
             val excludes = dep.exclusions.map { excl =>
               DependencyExcludeExport(organization = excl.organization, name = excl.name)
@@ -74,30 +74,36 @@ object BuildStructureExportPlugin extends AutoPlugin {
               configurations = dep.configurations
             )
           }
-        val mainProjectExport = ProjectExport(
+        }
+        
+        val projectExport = ProjectExport(
           id = project.id,
           base = project.base.getAbsolutePath,
           name = (projectRef / name).value,
-          description = descriptionValue,
+          javacOptions = (projectRef / javacOptions).value,
           scalaVersion = (projectRef / scalaVersion).value,
+          scalacOptions = (projectRef / scalacOptions).value,
+          interProjectDependencies = interProjectDependencies,
+          externalDependencies = externalDependencies,
+          repositories = repositories,
+          // for some reason not project specific or...??? throws
+          resourceDirs = (Compile / resourceDirectories).value.map(_.getAbsolutePath),
+          testResourceDirs = (Test / resourceDirectories).value.map(_.getAbsolutePath),
+          // publish stuff
           organization = (projectRef / organization).value,
           artifactName = artifactValue.name,
           artifactType = artifactValue.`type`,
           artifactClassifier = artifactValue.classifier,
           version = (projectRef / version).value,
+          description = descriptionValue,
           homepage = (projectRef / homepage).value.map(_.toString),
-          externalDependencies = externalDependencies,
-          interProjectDependencies = interProjectDependencies,
-          javacOptions = (projectRef / javacOptions).value,
-          scalacOptions = (projectRef / scalacOptions).value,
-          repositories = repositories,
           developers = developerExports,
           licenses = licenseExports,
           scmInfo = scmInfoExport
         )
 
-        val res = upickle.default.write(mainProjectExport)
-        sbt.IO.write(file(s"target/build-export/${mainProjectExport.id}.json"), res)
+        val res = upickle.default.write(projectExport)
+        sbt.IO.write(file(s"target/build-export/${projectExport.id}.json"), res)
       }
     }.value
   )
