@@ -2,43 +2,54 @@ package ba.sake.sbt.build.extract
 
 import upickle.default.{ReadWriter, macroRW}
 
-case class BuildStructureExport(
-    projects: Seq[ProjectExport]
-)
-
-object BuildStructureExport {
-  implicit val rw: ReadWriter[BuildStructureExport] = macroRW
-}
-
 case class ProjectExport(
-    scope: String,
     id: String,
     base: String,
     name: String,
+    description: String,
     scalaVersion: String,
-    organization: String,
+    organization: String, // groupId
+    artifactName: String,
+    artifactType: String, // jar, war ..
+    artifactClassifier: Option[String], // sources, javadoc ..
     version: String,
-    // publishTo: String, // TODO
     homepage: Option[String],
     externalDependencies: Seq[DependencyExport],
     interProjectDependencies: Seq[InterProjectDependencyExport],
     javacOptions: Seq[String],
-    scalacOptions: Seq[String]
+    scalacOptions: Seq[String],
+    repositories: Seq[String],
+    developers: Seq[DeveloperExport],
+    licenses: Seq[LicenseExport],
+    scmInfo: Option[ScmInfoExport]
 )
 
 object ProjectExport {
   implicit val rw: ReadWriter[ProjectExport] = macroRW
 }
 
+// TODO structured crossVersion?
 case class DependencyExport(
-    organization: String,
-    name: String,
-    revision: String,
-    crossVersion: String // TODO structured crossVersion
+    organization: String, // groupId
+    name: String, // artifactName
+    revision: String, // version
+    extraAttributes: Map[String, String], // type, classifier ..
+    configurations: Option[String], // provided, test ..
+    excludes: Seq[DependencyExcludeExport],
+    crossVersion: String
 )
 
 object DependencyExport {
   implicit val rw: ReadWriter[DependencyExport] = macroRW
+}
+
+case class DependencyExcludeExport(
+    organization: String, // groupId
+    name: String // artifactName
+)
+
+object DependencyExcludeExport {
+  implicit val rw: ReadWriter[DependencyExcludeExport] = macroRW
 }
 
 case class InterProjectDependencyExport(
@@ -48,4 +59,22 @@ case class InterProjectDependencyExport(
 
 object InterProjectDependencyExport {
   implicit val rw: ReadWriter[InterProjectDependencyExport] = macroRW
+}
+
+case class DeveloperExport(id: String, name: String, email: String, url: String)
+
+object DeveloperExport {
+  implicit val rw: ReadWriter[DeveloperExport] = macroRW
+}
+
+case class LicenseExport(name: String, url: String)
+
+object LicenseExport {
+  implicit val rw: ReadWriter[LicenseExport] = macroRW
+}
+
+case class ScmInfoExport(browseUrl: String, connection: String, devConnection: Option[String])
+
+object ScmInfoExport {
+  implicit val rw: ReadWriter[ScmInfoExport] = macroRW
 }

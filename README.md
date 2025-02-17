@@ -15,76 +15,82 @@ then run
 sbt> exportBuildStructure
 ```
 
-This will generate files inside `build-export` folder, for example:
+This will generate files inside `target/build-export` folder, for example:
 ```
-build-export/myproject1.json
-build-export/myproject2.json
+myproject1.json
+myproject2.json
 ```
 
 Each of these files contains the build structure of a subproject in JSON format.
-For example if `myproject1` depends on `myproject2`, `myproject1.json` will contain something like this:
+For example if `myproject1` depends on `myproject2`, the `myproject1.json` file will contain something like this:
 ```json
 {
-    "projects": [
+    "artifactClassifier": null,
+    "artifactName": "hepek",
+    "artifactType": "jar",
+    "base": "/projects/hepek",
+    "description": "Hepek SSG",
+    "developers": [
         {
-            "id": "myproject1",
-            "base": "D:\\projects\\myproject\\myproject1",
-            "name": "myproject1",
-            "scalaVersion": "3.3.4",
-            "organization": "com.example",
-            "version": "0.0.1-SNAPSHOT",
-            "homepage": "..",
-            "externalDependencies": [
-                {
-                    "organization": "org.scala-lang",
-                    "name": "scala3-library",
-                    "revision": "3.3.4",
-                    "crossVersion": "binary"
-                }
-            ],
-            "interProjectDependencies": [
-                {
-                    "project": "myproject2",
-                    "configuration": "default"
-                }
-            ],
-            "javacOptions": [],
-            "scalacOptions": [
-                "-deprecation",
-                "-Yretain-trees",
-                "-Wunused:all"
-            ]
-        },
-        {
-            "id": "myproject1-test",
-            "base": "D:\\projects\\myproject\\myproject1",
-            "name": "hepek",
-            "scalaVersion": "3.3.4",
-            "organization": "com.example",
-            "version": "0.0.1-SNAPSHOT",
-            "homepage": "...",
-            "externalDependencies": [
-                {
-                    "organization": "org.scala-lang",
-                    "name": "scala3-library",
-                    "revision": "3.3.4",
-                    "crossVersion": "binary"
-                }
-            ],
-            "interProjectDependencies": [
-                {
-                    "project": "myproject2",
-                    "configuration": "default"
-                }
-            ],
-            "javacOptions": [],
-            "scalacOptions": [
-                "-deprecation",
-                "-Yretain-trees",
-                "-Wunused:all"
-            ]
+          "email": "sakib@sake.ba",
+          "id": "sake92",
+          "name": "Sakib Hadžiavdić",
+          "url": "https://sake.ba"
         }
-    ]
+    ],
+    "externalDependencies": [
+      {
+        "organization": "org.scala-lang",
+        "name": "scala3-library",
+        "revision": "3.3.4",
+        "extraAttributes": {},
+        "configurations": null,
+        "excludes": [],
+        "crossVersion": "binary"
+      },
+      {
+        "organization": "org.scalameta",
+        "name": "munit",
+        "revision": "1.0.2",
+        "extraAttributes": {},
+        "configurations": "test",
+        "excludes": [],
+        "crossVersion": "binary"
+      }
+    ],
+    "homepage": "https://sake92.github.io/hepek",
+    "id": "hepekSSG",
+    "interProjectDependencies": [
+        {
+            "project": "myproject2",
+            "configuration": "default"
+        }
+    ],
+    "javacOptions": [
+    ],
+    "licenses": [
+        {
+          "name": "Apache-2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0"
+        }
+    ],
+    "name": "hepek",
+    "organization": "ba.sake",
+    "repositories": [
+      "https://oss.sonatype.org/content/repositories/snapshots"
+    ],
+    "scalacOptions": [
+        "-deprecation",
+        "-Yretain-trees",
+        "-Wunused:all"
+    ],
+    "scalaVersion": "3.3.4",
+    "scmInfo": {
+        "browseUrl": "https://github.com/sake92/hepek",
+        "connection": "scm:git:git@github.com:sake92/hepek.git",
+        "devConnection": null
+    },
+    "version": "0.0.1-SNAPSHOT"
 }
 ```
 

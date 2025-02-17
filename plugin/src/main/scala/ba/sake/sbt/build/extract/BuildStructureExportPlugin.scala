@@ -31,9 +31,32 @@ object BuildStructureExportPlugin extends AutoPlugin {
             configuration = dep.configuration.getOrElse("default")
           )
         }
+        val repositories = (projectRef / resolvers).value
+          .collect { case mr: MavenRepository =>
+            mr.root
+          }
+        val artifactValue = (projectRef / artifact).value
+        val descriptionValue = (projectRef / description).value
+        val developerExports = (projectRef / developers).value.map { d =>
+          DeveloperExport(id = d.id, name = d.name, email = d.email, url = d.url.toString)
+        }
+        val licenseExports = (projectRef / licenses).value.map { case (name, url) =>
+          LicenseExport(name = name, url = url.toString)
+        }
+        val scmInfoExport = (projectRef / scmInfo).value.map { info =>
+          ScmInfoExport(
+            browseUrl = info.browseUrl.toString,
+            connection = info.connection,
+            devConnection = info.devConnection
+          )
+        }
+
         // main project
         val externalDependencies =
-          (projectRef / Compile / libraryDependencies).value.map { dep =>
+          (projectRef / libraryDependencies).value.map { dep =>
+            val excludes = dep.exclusions.map { excl =>
+              DependencyExcludeExport(organization = excl.organization, name = excl.name)
+            }
             DependencyExport(
               name = dep.name,
               organization = dep.organization,
@@ -41,61 +64,40 @@ object BuildStructureExportPlugin extends AutoPlugin {
               crossVersion = dep.crossVersion match {
                 case _: CrossVersion.Binary => "binary"
                 case _: CrossVersion.Full   => "full"
+                case _: CrossVersion.Constant   => "constant"
+                case _: CrossVersion.Patch   => "patch"
                 case CrossVersion.Disabled  => "none"
                 case _                      => "unknown"
-              }
+              },
+              extraAttributes = dep.extraAttributes,
+              excludes = excludes,
+              configurations = dep.configurations
             )
           }
         val mainProjectExport = ProjectExport(
-          scope = "compile",
           id = project.id,
           base = project.base.getAbsolutePath,
-          name = (projectRef / Compile / name).value,
-          scalaVersion = (projectRef / Compile / scalaVersion).value,
-          organization = (projectRef / Compile / organization).value,
-          version = (projectRef / Compile / version).value,
-          //  publishTo = publishTo.in(projectRef).get(structureData).map(_.), // TODO
-          homepage = (projectRef / Compile / homepage).value.map(_.toString),
+          name = (projectRef / name).value,
+          description = descriptionValue,
+          scalaVersion = (projectRef / scalaVersion).value,
+          organization = (projectRef / organization).value,
+          artifactName = artifactValue.name,
+          artifactType = artifactValue.`type`,
+          artifactClassifier = artifactValue.classifier,
+          version = (projectRef / version).value,
+          homepage = (projectRef / homepage).value.map(_.toString),
           externalDependencies = externalDependencies,
           interProjectDependencies = interProjectDependencies,
-          javacOptions = (projectRef / Compile / javacOptions).value,
-          scalacOptions = (projectRef / Compile / scalacOptions).value
+          javacOptions = (projectRef / javacOptions).value,
+          scalacOptions = (projectRef / scalacOptions).value,
+          repositories = repositories,
+          developers = developerExports,
+          licenses = licenseExports,
+          scmInfo = scmInfoExport
         )
 
-        // test project
-        val testExternalDependencies =
-          (projectRef / Test / libraryDependencies).value.map { dep =>
-            DependencyExport(
-              name = dep.name,
-              organization = dep.organization,
-              revision = dep.revision,
-              crossVersion = dep.crossVersion match {
-                case _: CrossVersion.Binary => "binary"
-                case _: CrossVersion.Full   => "full"
-                case CrossVersion.Disabled  => "none"
-                case _                      => "unknown"
-              }
-            )
-          }
-        val testProjectExport = ProjectExport(
-          scope = "test",
-          id = project.id,
-          base = project.base.getAbsolutePath,
-          name = (projectRef / Test / name).value,
-          scalaVersion = (projectRef / Test / scalaVersion).value,
-          organization = (projectRef / Test / organization).value,
-          version = (projectRef / Test / version).value,
-          //  publishTo = publishTo.in(projectRef).get(structureData).map(_.), // TODO
-          homepage = (projectRef / Test / homepage).value.map(_.toString),
-          externalDependencies = testExternalDependencies,
-          interProjectDependencies = interProjectDependencies,
-          javacOptions = (projectRef / Test / javacOptions).value,
-          scalacOptions = (projectRef / Test / scalacOptions).value
-        )
-
-        val projectExports = Seq(mainProjectExport, testProjectExport)
-        val res = upickle.default.write(BuildStructureExport(projectExports))
-        sbt.IO.write(file(s"build-export/${mainProjectExport.id}.json"), res)
+        val res = upickle.default.write(mainProjectExport)
+        sbt.IO.write(file(s"target/build-export/${mainProjectExport.id}.json"), res)
       }
     }.value
   )
