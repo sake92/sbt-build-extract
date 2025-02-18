@@ -93,9 +93,3 @@ For example if `myproject1` depends on `myproject2`, the `myproject1.json` file 
     "version": "0.0.1-SNAPSHOT"
 }
 ```
-
-Sbt sees `myproject1` as one project with multiple axis.
-But here we treat them as separate projects:
-- one for main (Compile) project
-- one for test project
-
