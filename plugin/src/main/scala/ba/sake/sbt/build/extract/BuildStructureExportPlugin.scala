@@ -88,10 +88,10 @@ object BuildStructureExportPlugin extends AutoPlugin {
           externalDependencies = externalDependencies,
           repositories = repositories,
           // for some reason we cant do (projectRef / Compile / resourceDirectories) .. throws
+          sourceDirs = (Compile / sourceDirectories).value.map(_.getAbsolutePath),
+          testSourceDirs = (Test / sourceDirectories).value.map(_.getAbsolutePath),
           resourceDirs = (Compile / resourceDirectories).value.map(_.getAbsolutePath),
           testResourceDirs = (Test / resourceDirectories).value.map(_.getAbsolutePath),
-          sourceDirectories = (Compile / sourceDirectories).value.map(_.getAbsolutePath),
-          testSourceDirectories = (Test / sourceDirectories).value.map(_.getAbsolutePath),
           plugins = project.autoPlugins.map(_.label),
           // publish stuff
           organization = (projectRef / organization).value,

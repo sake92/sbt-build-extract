@@ -13,10 +13,10 @@ case class ProjectExport(
     interProjectDependencies: Seq[InterProjectDependencyExport],
     externalDependencies: Seq[DependencyExport],
     repositories: Seq[String], // custom maven repos
+    sourceDirs: Seq[String],
+    testSourceDirs: Seq[String],
     resourceDirs: Seq[String],
     testResourceDirs: Seq[String],
-    sourceDirectories: Seq[String],
-    testSourceDirectories: Seq[String],
     plugins: Seq[String],
     // publish stuff
     organization: String, // groupId
