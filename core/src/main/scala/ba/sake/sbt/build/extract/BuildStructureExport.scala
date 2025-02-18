@@ -8,12 +8,16 @@ case class ProjectExport(
     name: String,
     javacOptions: Seq[String],
     scalaVersion: String,
+    crossScalaVersions: Seq[String],
     scalacOptions: Seq[String],
     interProjectDependencies: Seq[InterProjectDependencyExport],
     externalDependencies: Seq[DependencyExport],
     repositories: Seq[String], // custom maven repos
     resourceDirs: Seq[String],
     testResourceDirs: Seq[String],
+    sourceDirectories: Seq[String],
+    testSourceDirectories: Seq[String],
+    plugins: Seq[String],
     // publish stuff
     organization: String, // groupId
     artifactName: String,

@@ -82,13 +82,17 @@ object BuildStructureExportPlugin extends AutoPlugin {
           name = (projectRef / name).value,
           javacOptions = (projectRef / javacOptions).value,
           scalaVersion = (projectRef / scalaVersion).value,
+          crossScalaVersions = (projectRef / crossScalaVersions).value,
           scalacOptions = (projectRef / scalacOptions).value,
           interProjectDependencies = interProjectDependencies,
           externalDependencies = externalDependencies,
           repositories = repositories,
-          // for some reason not project specific or...??? throws
+          // for some reason we cant do (projectRef / Compile / resourceDirectories) .. throws
           resourceDirs = (Compile / resourceDirectories).value.map(_.getAbsolutePath),
           testResourceDirs = (Test / resourceDirectories).value.map(_.getAbsolutePath),
+          sourceDirectories = (Compile / sourceDirectories).value.map(_.getAbsolutePath),
+          testSourceDirectories = (Test / sourceDirectories).value.map(_.getAbsolutePath),
+          plugins = project.autoPlugins.map(_.label),
           // publish stuff
           organization = (projectRef / organization).value,
           artifactName = artifactValue.name,
@@ -107,4 +111,5 @@ object BuildStructureExportPlugin extends AutoPlugin {
       }
     }.value
   )
+  
 }
