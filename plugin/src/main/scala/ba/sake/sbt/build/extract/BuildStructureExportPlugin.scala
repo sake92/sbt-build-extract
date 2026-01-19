@@ -19,11 +19,11 @@ object BuildStructureExportPlugin extends AutoPlugin {
 
       val project = thisProject.value
       val projectRef = thisProjectRef.value
-      //val stateValue = state.value
-      //val structure = Project.structure(stateValue)
-      //val structureData = structure.data
+      // val stateValue = state.value
+      // val structure = Project.structure(stateValue)
+      // val structureData = structure.data
       log.info(s"Extracting information for project ${project.id}...")
-      
+
       Def.task {
         val interProjectDependencies = project.referenced.map { dep =>
           InterProjectDependencyExport(
@@ -62,12 +62,12 @@ object BuildStructureExportPlugin extends AutoPlugin {
               organization = dep.organization,
               revision = dep.revision,
               crossVersion = dep.crossVersion match {
-                case _: CrossVersion.Binary => "binary"
-                case _: CrossVersion.Full   => "full"
-                case _: CrossVersion.Constant   => "constant"
-                case _: CrossVersion.Patch   => "patch"
-                case CrossVersion.Disabled  => "none"
-                case _                      => "unknown"
+                case _: CrossVersion.Binary   => "binary"
+                case _: CrossVersion.Full     => "full"
+                case _: CrossVersion.Constant => "constant"
+                case _: CrossVersion.Patch    => "patch"
+                case CrossVersion.Disabled    => "none"
+                case _                        => "unknown"
               },
               extraAttributes = dep.extraAttributes,
               excludes = excludes,
@@ -75,7 +75,7 @@ object BuildStructureExportPlugin extends AutoPlugin {
             )
           }
         }
-        
+
         val projectExport = ProjectExport(
           id = project.id,
           base = project.base.getAbsolutePath,
@@ -87,11 +87,10 @@ object BuildStructureExportPlugin extends AutoPlugin {
           interProjectDependencies = interProjectDependencies,
           externalDependencies = externalDependencies,
           repositories = repositories,
-          // for some reason we cant do (projectRef / Compile / resourceDirectories) .. throws
-          sourceDirs = (Compile / sourceDirectories).value.map(_.getAbsolutePath),
-          testSourceDirs = (Test / sourceDirectories).value.map(_.getAbsolutePath),
-          resourceDirs = (Compile / resourceDirectories).value.map(_.getAbsolutePath),
-          testResourceDirs = (Test / resourceDirectories).value.map(_.getAbsolutePath),
+          sourceDirs = (projectRef / Compile / sourceDirectories).value.map(_.getAbsolutePath),
+          testSourceDirs = (projectRef / Test / sourceDirectories).value.map(_.getAbsolutePath),
+          resourceDirs = (projectRef / Compile / resourceDirectories).value.map(_.getAbsolutePath),
+          testResourceDirs = (projectRef / Test / resourceDirectories).value.map(_.getAbsolutePath),
           plugins = project.autoPlugins.map(_.label),
           // publish stuff
           organization = (projectRef / organization).value,
@@ -111,5 +110,5 @@ object BuildStructureExportPlugin extends AutoPlugin {
       }
     }.value
   )
-  
+
 }
