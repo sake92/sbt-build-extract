@@ -12,7 +12,7 @@ libraryDependencies += "ba.sake" %% "sbt-build-extract-core" % "0.0.2"
 
 then run
 ```bash
-sbt> exportBuildStructure
+sbt> exportAllBuildStructures
 ```
 
 This will generate files inside `target/build-export` folder, for example:

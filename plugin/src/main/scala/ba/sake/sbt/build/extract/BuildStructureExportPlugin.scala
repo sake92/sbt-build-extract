@@ -8,10 +8,16 @@ object BuildStructureExportPlugin extends AutoPlugin {
 
   object autoImport {
     val exportBuildStructure =
-      taskKey[Unit]("Exports all projects in JSON format with dependencies and compiler options")
+      taskKey[Unit]("Exports the current project in JSON format with dependencies and compiler options")
+    val exportAllBuildStructures =
+      taskKey[Unit]("Exports all loaded projects in JSON format, regardless of aggregation")
   }
 
   import autoImport.*
+
+  override lazy val buildSettings = Seq(
+    exportAllBuildStructures := exportBuildStructure.all(ScopeFilter(inAnyProject)).value
+  )
 
   override lazy val projectSettings = Seq(
     exportBuildStructure := Def.taskDyn {
