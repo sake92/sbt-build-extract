@@ -28,9 +28,9 @@ object BuildStructureExportPlugin extends AutoPlugin {
       log.info(s"Extracting information for project ${project.id}...")
 
       Def.task {
-        val interProjectDependencies = project.referenced.map { dep =>
+        val interProjectDependencies = project.dependencies.map { dep =>
           InterProjectDependencyExport(
-            project = dep.project,
+            project = dep.project.project,
             configuration = dep.configuration.getOrElse("default")
           )
         }
