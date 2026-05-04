@@ -2,7 +2,25 @@ package ba.sake.sbt.build.extract
 
 import upickle.default.{ReadWriter, macroRW, readwriter}
 
-// --- Enum ---
+// --- Enums ---
+
+sealed trait PlatformExport
+object PlatformExport {
+  case object ScalaJS     extends PlatformExport
+  case object ScalaNative extends PlatformExport
+
+  implicit val rw: ReadWriter[PlatformExport] =
+    readwriter[String].bimap[PlatformExport](
+      {
+        case ScalaJS     => "ScalaJS"
+        case ScalaNative => "ScalaNative"
+      },
+      {
+        case "ScalaJS"     => ScalaJS
+        case "ScalaNative" => ScalaNative
+      }
+    )
+}
 
 sealed trait CrossVersionExport
 object CrossVersionExport {
@@ -76,7 +94,7 @@ case class DependencyExport(
     configurations: Option[String], // provided, test ..
     excludes: Seq[DependencyExcludeExport],
     crossVersion: CrossVersionExport,
-    platformOpt: Option[String], // ScalaJS, ScalaNative, or None
+    platformOpt: Option[PlatformExport], // ScalaJS, ScalaNative, or None
     isChanging: Boolean,
     isTransitive: Boolean,
     isForce: Boolean,
