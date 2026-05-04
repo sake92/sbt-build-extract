@@ -69,10 +69,10 @@ object BuildStructureExportPlugin extends AutoPlugin {
               excludes = excludes,
               configurations = dep.configurations,
               platformOpt = dep.crossVersion match {
-                case b: CrossVersion.Binary if b.prefix.contains("_sjs")    => Some("ScalaJS")
-                case b: CrossVersion.Binary if b.prefix.contains("_native") => Some("ScalaNative")
-                case f: CrossVersion.Full   if f.prefix.contains("_sjs")    => Some("ScalaJS")
-                case f: CrossVersion.Full   if f.prefix.contains("_native") => Some("ScalaNative")
+                case b: CrossVersion.Binary if b.prefix.contains("sjs") || b.suffix.contains("sjs")       => Some("ScalaJS")
+                case b: CrossVersion.Binary if b.prefix.contains("native") || b.suffix.contains("native") => Some("ScalaNative")
+                case f: CrossVersion.Full   if f.prefix.contains("sjs") || f.suffix.contains("sjs")       => Some("ScalaJS")
+                case f: CrossVersion.Full   if f.prefix.contains("native") || f.suffix.contains("native") => Some("ScalaNative")
                 case _ => None
               },
               isChanging = dep.isChanging,

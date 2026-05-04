@@ -32,9 +32,15 @@ lazy val core = (project in file("core"))
   )
 
 lazy val plugin = (project in file("plugin"))
+  .enablePlugins(ScriptedPlugin)
   .settings(
     name := "sbt-build-extract",
     description := "Sbt plugin for extracting build information",
-    sbtPlugin := true
+    sbtPlugin := true,
+    scriptedLaunchOpts := {
+      scriptedLaunchOpts.value ++
+        Seq("-Xmx1024M", "-Dplugin.version=" + version.value)
+    },
+    scriptedBufferLog := false
   )
   .dependsOn(core)
