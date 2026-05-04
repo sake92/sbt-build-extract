@@ -6,8 +6,8 @@ Extracts build structure of sbt projects.
 
 Add to your `project/plugins.sbt`:
 ```scala
-addSbtPlugin("ba.sake" % "sbt-build-extract" % "0.0.2")
-libraryDependencies += "ba.sake" %% "sbt-build-extract-core" % "0.0.2"
+addSbtPlugin("ba.sake" % "sbt-build-extract" % "0.0.4")
+libraryDependencies += "ba.sake" %% "sbt-build-extract-core" % "0.0.4"
 ```
 
 then run
