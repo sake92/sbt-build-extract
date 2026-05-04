@@ -18,3 +18,4 @@ jobs:
           java-version: 11
           cache: sbt
       - run: sbt test
+      - run: sbt plugin/scripted
