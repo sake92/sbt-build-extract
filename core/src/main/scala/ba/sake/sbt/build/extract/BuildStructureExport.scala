@@ -1,6 +1,40 @@
 package ba.sake.sbt.build.extract
 
-import upickle.default.{ReadWriter, macroRW}
+import upickle.default.{ReadWriter, macroRW, readwriter}
+
+// --- Enum ---
+
+sealed trait CrossVersionExport
+object CrossVersionExport {
+  case object Binary   extends CrossVersionExport
+  case object Full     extends CrossVersionExport
+  case object Constant extends CrossVersionExport
+  case object Patch    extends CrossVersionExport
+  case object Disabled extends CrossVersionExport
+  case object Unknown  extends CrossVersionExport
+
+  implicit val rw: ReadWriter[CrossVersionExport] =
+    readwriter[String].bimap[CrossVersionExport](
+      {
+        case Binary   => "binary"
+        case Full     => "full"
+        case Constant => "constant"
+        case Patch    => "patch"
+        case Disabled => "none"
+        case Unknown  => "unknown"
+      },
+      {
+        case "binary"   => Binary
+        case "full"     => Full
+        case "constant" => Constant
+        case "patch"    => Patch
+        case "none"     => Disabled
+        case _          => Unknown
+      }
+    )
+}
+
+// --- Export types ---
 
 case class ProjectExport(
     id: String,
@@ -30,12 +64,10 @@ case class ProjectExport(
     licenses: Seq[LicenseExport],
     scmInfo: Option[ScmInfoExport]
 )
-
 object ProjectExport {
   implicit val rw: ReadWriter[ProjectExport] = macroRW
 }
 
-// TODO structured crossVersion?
 case class DependencyExport(
     organization: String, // groupId
     name: String, // artifactName
@@ -43,9 +75,13 @@ case class DependencyExport(
     extraAttributes: Map[String, String], // type, classifier ..
     configurations: Option[String], // provided, test ..
     excludes: Seq[DependencyExcludeExport],
-    crossVersion: String
+    crossVersion: CrossVersionExport,
+    platformOpt: Option[String], // ScalaJS, ScalaNative, or None
+    isChanging: Boolean,
+    isTransitive: Boolean,
+    isForce: Boolean,
+    branchName: Option[String]
 )
-
 object DependencyExport {
   implicit val rw: ReadWriter[DependencyExport] = macroRW
 }
@@ -54,7 +90,6 @@ case class DependencyExcludeExport(
     organization: String, // groupId
     name: String // artifactName
 )
-
 object DependencyExcludeExport {
   implicit val rw: ReadWriter[DependencyExcludeExport] = macroRW
 }
@@ -63,25 +98,21 @@ case class InterProjectDependencyExport(
     project: String,
     configuration: String
 )
-
 object InterProjectDependencyExport {
   implicit val rw: ReadWriter[InterProjectDependencyExport] = macroRW
 }
 
 case class DeveloperExport(id: String, name: String, email: String, url: String)
-
 object DeveloperExport {
   implicit val rw: ReadWriter[DeveloperExport] = macroRW
 }
 
 case class LicenseExport(name: String, url: String)
-
 object LicenseExport {
   implicit val rw: ReadWriter[LicenseExport] = macroRW
 }
 
 case class ScmInfoExport(browseUrl: String, connection: String, devConnection: Option[String])
-
 object ScmInfoExport {
   implicit val rw: ReadWriter[ScmInfoExport] = macroRW
 }

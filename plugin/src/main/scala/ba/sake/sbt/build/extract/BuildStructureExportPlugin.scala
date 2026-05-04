@@ -25,9 +25,6 @@ object BuildStructureExportPlugin extends AutoPlugin {
 
       val project = thisProject.value
       val projectRef = thisProjectRef.value
-      // val stateValue = state.value
-      // val structure = Project.structure(stateValue)
-      // val structureData = structure.data
       log.info(s"Extracting information for project ${project.id}...")
 
       Def.task {
@@ -67,17 +64,19 @@ object BuildStructureExportPlugin extends AutoPlugin {
               name = dep.name,
               organization = dep.organization,
               revision = dep.revision,
-              crossVersion = dep.crossVersion match {
-                case _: CrossVersion.Binary   => "binary"
-                case _: CrossVersion.Full     => "full"
-                case _: CrossVersion.Constant => "constant"
-                case _: CrossVersion.Patch    => "patch"
-                case CrossVersion.Disabled    => "none"
-                case _                        => "unknown"
-              },
+              crossVersion = crossVersionExport(dep.crossVersion),
               extraAttributes = dep.extraAttributes,
               excludes = excludes,
-              configurations = dep.configurations
+              configurations = dep.configurations,
+              platformOpt = {
+                if (dep.name.contains("_sjs")) Some("ScalaJS")
+                else if (dep.name.contains("_native")) Some("ScalaNative")
+                else None
+              },
+              isChanging = dep.isChanging,
+              isTransitive = dep.isTransitive,
+              isForce = dep.isForce,
+              branchName = dep.branchName
             )
           }
         }
@@ -117,4 +116,13 @@ object BuildStructureExportPlugin extends AutoPlugin {
     }.value
   )
 
+  @scala.annotation.nowarn("cat=deprecation")
+  private def crossVersionExport(cv: sbt.librarymanagement.CrossVersion): CrossVersionExport = cv match {
+    case _: CrossVersion.Binary   => CrossVersionExport.Binary
+    case _: CrossVersion.Full     => CrossVersionExport.Full
+    case _: CrossVersion.Constant => CrossVersionExport.Constant
+    case _: CrossVersion.Patch    => CrossVersionExport.Patch
+    case CrossVersion.Disabled    => CrossVersionExport.Disabled
+    case _                        => CrossVersionExport.Unknown
+  }
 }

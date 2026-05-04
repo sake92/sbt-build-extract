@@ -46,7 +46,12 @@ For example if `myproject1` depends on `myproject2`, the `myproject1.json` file 
         "extraAttributes": {},
         "configurations": null,
         "excludes": [],
-        "crossVersion": "binary"
+        "crossVersion": "binary",
+        "platformOpt": null,
+        "isChanging": false,
+        "isTransitive": true,
+        "isForce": false,
+        "branchName": null
       },
       {
         "organization": "org.scalameta",
@@ -55,7 +60,12 @@ For example if `myproject1` depends on `myproject2`, the `myproject1.json` file 
         "extraAttributes": {},
         "configurations": "test",
         "excludes": [],
-        "crossVersion": "binary"
+        "crossVersion": "binary",
+        "platformOpt": null,
+        "isChanging": false,
+        "isTransitive": true,
+        "isForce": false,
+        "branchName": null
       }
     ],
     "homepage": "https://sake92.github.io/hepek",
