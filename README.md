@@ -17,12 +17,13 @@ sbt> exportAllBuildStructures
 
 This will generate files inside `target/build-export` folder, for example:
 ```
-myproject1.json
-myproject2.json
+myproject1_3.3.4.json
+myproject2_3.3.4.json
 ```
 
-Each of these files contains the build structure of a subproject in JSON format.
-For example if `myproject1` depends on `myproject2`, the `myproject1.json` file will contain something like this:
+Each of these files contains the build structure of a subproject in JSON format, with the Scala version included in the filename.
+For cross-compiled projects (those with `crossScalaVersions`), the plugin exports a separate file per Scala version.
+For example if `myproject1` depends on `myproject2`, the `myproject1_3.3.4.json` file will contain something like this:
 ```json
 {
     "artifactClassifier": null,
