@@ -60,7 +60,6 @@ case class ProjectExport(
     name: String,
     javacOptions: Seq[String],
     scalaVersion: String,
-    crossScalaVersions: Seq[String],
     scalacOptions: Seq[String],
     interProjectDependencies: Seq[InterProjectDependencyExport],
     externalDependencies: Seq[DependencyExport],
