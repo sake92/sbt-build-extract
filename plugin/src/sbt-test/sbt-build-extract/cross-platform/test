@@ -2,15 +2,15 @@
 > exportAllBuildStructures
 
 # Verify all three JSON files exist
-$ exists target/build-export/fooJVM.json
-$ exists target/build-export/fooJS.json
-$ exists target/build-export/fooNative.json
+$ exists target/build-export/fooJVM_2.13.16.json
+$ exists target/build-export/fooJS_2.13.16.json
+$ exists target/build-export/fooNative_2.13.16.json
 
 # JVM project: must NOT contain any platform markers
-$ exec sh -c '! grep -qE "\"platformOpt\":\"(ScalaJS|ScalaNative)\"" target/build-export/fooJVM.json'
+$ exec sh -c '! grep -qE "\"platformOpt\":\"(ScalaJS|ScalaNative)\"" target/build-export/fooJVM_2.13.16.json'
 
 # JS project: must contain ScalaJS platform marker
-$ exec grep -q '"platformOpt":"ScalaJS"' target/build-export/fooJS.json
+$ exec grep -q '"platformOpt":"ScalaJS"' target/build-export/fooJS_2.13.16.json
 
 # Native project: must contain ScalaNative platform marker
-$ exec grep -q '"platformOpt":"ScalaNative"' target/build-export/fooNative.json
+$ exec grep -q '"platformOpt":"ScalaNative"' target/build-export/fooNative_2.13.16.json
