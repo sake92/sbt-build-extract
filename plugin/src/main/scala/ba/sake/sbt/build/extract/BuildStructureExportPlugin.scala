@@ -16,7 +16,33 @@ object BuildStructureExportPlugin extends AutoPlugin {
   import autoImport.*
 
   override lazy val buildSettings = Seq(
-    exportAllBuildStructures := exportBuildStructure.all(ScopeFilter(inAnyProject)).value
+    exportAllBuildStructures := Def.task {
+      val st = state.value
+      val extracted = Project.extract(st)
+      val allRefs = loadedBuild.value.allProjectRefs.map(_._1)
+      val log = streams.value.log
+
+      allRefs.foreach { ref =>
+        val crossV = extracted.get(ref / crossScalaVersions).toList
+        val versions = if (crossV.nonEmpty) crossV else List(extracted.get(ref / scalaVersion))
+
+        versions.foreach { v =>
+          log.info(s"Exporting $ref for Scala $v...")
+          val newState = extracted.appendWithSession(
+            Seq(
+              (ref / scalaVersion) := v,
+              (ref / scalaBinaryVersion) := binaryScalaVersion(v)
+            ),
+            st
+          )
+          Project.runTask(ref / exportBuildStructure, newState) match {
+            case Some((_, Inc(inc))) => log.error(s"Failed to export $ref for $v: ${inc}")
+            case None                => log.warn(s"Export task not found for $ref")
+            case _                  => // success
+          }
+        }
+      }
+    }.value
   )
 
   override lazy val projectSettings = Seq(
@@ -125,5 +151,10 @@ object BuildStructureExportPlugin extends AutoPlugin {
     case _: CrossVersion.Patch    => CrossVersionExport.Patch
     case CrossVersion.Disabled    => CrossVersionExport.Disabled
     case _                        => CrossVersionExport.Unknown
+  }
+
+  private def binaryScalaVersion(version: String): String = {
+    if (version.startsWith("3.")) "3"
+    else version.split('.').take(2).mkString(".")
   }
 }
