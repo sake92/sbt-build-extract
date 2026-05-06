@@ -89,7 +89,6 @@ object BuildStructureExportPlugin extends AutoPlugin {
           name = (projectRef / name).value,
           javacOptions = (projectRef / javacOptions).value,
           scalaVersion = (projectRef / scalaVersion).value,
-          crossScalaVersions = (projectRef / crossScalaVersions).value,
           scalacOptions = (projectRef / scalacOptions).value,
           interProjectDependencies = interProjectDependencies,
           externalDependencies = externalDependencies,
@@ -113,7 +112,7 @@ object BuildStructureExportPlugin extends AutoPlugin {
         )
 
         val res = upickle.default.write(projectExport)
-        sbt.IO.write(file(s"target/build-export/${projectExport.id}.json"), res)
+        sbt.IO.write(file(s"target/build-export/${projectExport.id}_${projectExport.scalaVersion}.json"), res)
       }
     }.value
   )
