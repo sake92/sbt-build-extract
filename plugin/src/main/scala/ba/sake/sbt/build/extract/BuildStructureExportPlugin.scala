@@ -16,131 +16,130 @@ object BuildStructureExportPlugin extends AutoPlugin {
   import autoImport.*
 
   override lazy val buildSettings = Seq(
-    exportAllBuildStructures := Def.task {
-      val st = state.value
-      val extracted = Project.extract(st)
-      val allRefs = loadedBuild.value.allProjectRefs.map(_._1)
-      val log = streams.value.log
+    exportAllBuildStructures := Def.uncached {
+      Def.task {
+        val st = state.value
+        val extracted = Project.extract(st)
+        val allRefs = loadedBuild.value.allProjectRefs.map(_._1)
+        val log = streams.value.log
 
-      allRefs.foreach { ref =>
-        val crossV = extracted.get(ref / crossScalaVersions).toList
-        val versions = if (crossV.nonEmpty) crossV else List(extracted.get(ref / scalaVersion))
+        allRefs.foreach { ref =>
+          val crossV = extracted.get(ref / crossScalaVersions).toList
+          val versions = if (crossV.nonEmpty) crossV else List(extracted.get(ref / scalaVersion))
 
-        versions.foreach { v =>
-          log.info(s"Exporting $ref for Scala $v...")
-          val newState = extracted.appendWithSession(
-            Seq(
-              (ref / scalaVersion) := v,
-              (ref / scalaBinaryVersion) := binaryScalaVersion(v)
-            ),
-            st
-          )
-          Project.runTask(ref / exportBuildStructure, newState) match {
-            case Some((_, Inc(inc))) => log.error(s"Failed to export $ref for $v: ${inc}")
-            case None                => log.warn(s"Export task not found for $ref")
-            case _                  => // success
+          versions.foreach { v =>
+            log.info(s"Exporting $ref for Scala $v...")
+            val newState = extracted.appendWithSession(
+              Seq(
+                (ref / scalaVersion) := v,
+                (ref / scalaBinaryVersion) := binaryScalaVersion(v)
+              ),
+              st
+            )
+            Project.extract(newState).runTaskUnhandled(ref / exportBuildStructure, newState) match {
+              case Some((_, Result.Inc(inc))) => log.error(s"Failed to export $ref for $v: $inc")
+              case None                       => log.warn(s"Export task not found for $ref")
+              case _                          => // success
+            }
           }
         }
-      }
-    }.value
+      }.value
+    }
   )
 
   override lazy val projectSettings = Seq(
-    exportBuildStructure := Def.taskDyn {
-      val log = streams.value.log
+    exportBuildStructure := Def.uncached {
+      Def.taskDyn {
+        val log = streams.value.log
 
-      val project = thisProject.value
-      val projectRef = thisProjectRef.value
-      log.info(s"Extracting information for project ${project.id}...")
+        val project = thisProject.value
+        val projectRef = thisProjectRef.value
+        log.info(s"Extracting information for project ${project.id}...")
 
-      Def.task {
-        val interProjectDependencies = project.dependencies.map { dep =>
-          InterProjectDependencyExport(
-            project = dep.project.project,
-            configuration = dep.configuration.getOrElse("default")
-          )
-        }
-        val repositories = (projectRef / resolvers).value
-          .collect { case mr: MavenRepository =>
-            mr.root
-          }
-        val artifactValue = (projectRef / artifact).value
-        val descriptionValue = (projectRef / description).value
-        val developerExports = (projectRef / developers).value.map { d =>
-          DeveloperExport(id = d.id, name = d.name, email = d.email, url = d.url.toString)
-        }
-        val licenseExports = (projectRef / licenses).value.map { case (name, url) =>
-          LicenseExport(name = name, url = url.toString)
-        }
-        val scmInfoExport = (projectRef / scmInfo).value.map { info =>
-          ScmInfoExport(
-            browseUrl = info.browseUrl.toString,
-            connection = info.connection,
-            devConnection = info.devConnection
-          )
-        }
-
-        // main project
-        val externalDependencies = {
-          (projectRef / libraryDependencies).value.map { dep =>
-            val excludes = dep.exclusions.map { excl =>
-              DependencyExcludeExport(organization = excl.organization, name = excl.name)
-            }
-            DependencyExport(
-              name = dep.name,
-              organization = dep.organization,
-              revision = dep.revision,
-              crossVersion = crossVersionExport(dep.crossVersion),
-              extraAttributes = dep.extraAttributes,
-              excludes = excludes,
-              configurations = dep.configurations,
-              platformOpt = dep.crossVersion match {
-                case b: CrossVersion.Binary if b.prefix.contains("sjs") || b.suffix.contains("sjs")       => Some(PlatformExport.ScalaJS)
-                case b: CrossVersion.Binary if b.prefix.contains("native") || b.suffix.contains("native") => Some(PlatformExport.ScalaNative)
-                case f: CrossVersion.Full   if f.prefix.contains("sjs") || f.suffix.contains("sjs")       => Some(PlatformExport.ScalaJS)
-                case f: CrossVersion.Full   if f.prefix.contains("native") || f.suffix.contains("native") => Some(PlatformExport.ScalaNative)
-                case _ => None
-              },
-              isChanging = dep.isChanging,
-              isTransitive = dep.isTransitive,
-              isForce = dep.isForce,
-              branchName = dep.branchName
+        Def.task {
+          val interProjectDependencies = project.dependencies.map { dep =>
+            InterProjectDependencyExport(
+              project = dep.project.project,
+              configuration = dep.configuration.getOrElse("default")
             )
           }
+          val repositories = (projectRef / resolvers).value
+            .collect { case mr: MavenRepository =>
+              mr.root
+            }
+          val artifactValue = (projectRef / artifact).value
+          val projectPlatform = (projectRef / platform).value
+          val descriptionValue = (projectRef / description).value
+          val developerExports = (projectRef / developers).value.map { d =>
+            DeveloperExport(id = d.id, name = d.name, email = d.email, url = d.url.toString)
+          }
+          val licenseExports = (projectRef / licenses).value.map { license =>
+            LicenseExport(name = license.spdxId, url = license.uri.toString)
+          }
+          val scmInfoExport = (projectRef / scmInfo).value.map { info =>
+            ScmInfoExport(
+              browseUrl = info.browseUrl.toString,
+              connection = info.connection,
+              devConnection = info.devConnection
+            )
+          }
+
+          // main project
+          val externalDependencies = {
+            (projectRef / libraryDependencies).value.map { dep =>
+              val excludes = dep.exclusions.map { excl =>
+                DependencyExcludeExport(organization = excl.organization, name = excl.name)
+              }
+              DependencyExport(
+                name = dep.name,
+                organization = dep.organization,
+                revision = dep.revision,
+                crossVersion = crossVersionExport(dep.crossVersion),
+                extraAttributes = dep.extraAttributes,
+                excludes = excludes,
+                configurations = dep.configurations,
+                platformOpt = platformExport(dep, projectPlatform),
+                isChanging = dep.isChanging,
+                isTransitive = dep.isTransitive,
+                isForce = dep.isForce,
+                branchName = dep.branchName
+              )
+            }
+          }
+
+          val projectExport = ProjectExport(
+            id = project.id,
+            base = project.base.getAbsolutePath,
+            name = (projectRef / name).value,
+            javacOptions = (projectRef / javacOptions).value,
+            scalaVersion = (projectRef / scalaVersion).value,
+            scalacOptions = (projectRef / scalacOptions).value,
+            interProjectDependencies = interProjectDependencies,
+            externalDependencies = externalDependencies,
+            repositories = repositories,
+            sourceDirs = (projectRef / Compile / sourceDirectories).value.map(_.getAbsolutePath),
+            testSourceDirs = (projectRef / Test / sourceDirectories).value.map(_.getAbsolutePath),
+            resourceDirs = (projectRef / Compile / resourceDirectories).value.map(_.getAbsolutePath),
+            testResourceDirs = (projectRef / Test / resourceDirectories).value.map(_.getAbsolutePath),
+            plugins = project.autoPlugins.map(_.label),
+            // publish stuff
+            organization = (projectRef / organization).value,
+            artifactName = artifactValue.name,
+            artifactType = artifactValue.`type`,
+            artifactClassifier = artifactValue.classifier,
+            version = (projectRef / version).value,
+            description = descriptionValue,
+            homepage = (projectRef / homepage).value.map(_.toString),
+            developers = developerExports,
+            licenses = licenseExports,
+            scmInfo = scmInfoExport
+          )
+
+          val res = upickle.default.write(projectExport)
+          sbt.IO.write(file(s"target/build-export/${projectExport.id}_${projectExport.scalaVersion}.json"), res)
         }
-
-        val projectExport = ProjectExport(
-          id = project.id,
-          base = project.base.getAbsolutePath,
-          name = (projectRef / name).value,
-          javacOptions = (projectRef / javacOptions).value,
-          scalaVersion = (projectRef / scalaVersion).value,
-          scalacOptions = (projectRef / scalacOptions).value,
-          interProjectDependencies = interProjectDependencies,
-          externalDependencies = externalDependencies,
-          repositories = repositories,
-          sourceDirs = (projectRef / Compile / sourceDirectories).value.map(_.getAbsolutePath),
-          testSourceDirs = (projectRef / Test / sourceDirectories).value.map(_.getAbsolutePath),
-          resourceDirs = (projectRef / Compile / resourceDirectories).value.map(_.getAbsolutePath),
-          testResourceDirs = (projectRef / Test / resourceDirectories).value.map(_.getAbsolutePath),
-          plugins = project.autoPlugins.map(_.label),
-          // publish stuff
-          organization = (projectRef / organization).value,
-          artifactName = artifactValue.name,
-          artifactType = artifactValue.`type`,
-          artifactClassifier = artifactValue.classifier,
-          version = (projectRef / version).value,
-          description = descriptionValue,
-          homepage = (projectRef / homepage).value.map(_.toString),
-          developers = developerExports,
-          licenses = licenseExports,
-          scmInfo = scmInfoExport
-        )
-
-        val res = upickle.default.write(projectExport)
-        sbt.IO.write(file(s"target/build-export/${projectExport.id}_${projectExport.scalaVersion}.json"), res)
-      }
-    }.value
+      }.value
+    }
   )
 
   @scala.annotation.nowarn("cat=deprecation")
@@ -156,5 +155,22 @@ object BuildStructureExportPlugin extends AutoPlugin {
   private def binaryScalaVersion(version: String): String = {
     if (version.startsWith("3.")) "3"
     else version.split('.').take(2).mkString(".")
+  }
+
+  private def platformExport(dep: ModuleID, projectPlatform: String): Option[PlatformExport] = {
+    val platform = dep.platformOpt.getOrElse(projectPlatform)
+    dep.crossVersion match {
+      case _: CrossVersion.Binary | _: CrossVersion.Full if platform.contains("sjs") => Some(PlatformExport.ScalaJS)
+      case _: CrossVersion.Binary | _: CrossVersion.Full if platform.contains("native") =>
+        Some(PlatformExport.ScalaNative)
+      case b: CrossVersion.Binary if b.prefix.contains("sjs") || b.suffix.contains("sjs") =>
+        Some(PlatformExport.ScalaJS)
+      case b: CrossVersion.Binary if b.prefix.contains("native") || b.suffix.contains("native") =>
+        Some(PlatformExport.ScalaNative)
+      case f: CrossVersion.Full if f.prefix.contains("sjs") || f.suffix.contains("sjs") => Some(PlatformExport.ScalaJS)
+      case f: CrossVersion.Full if f.prefix.contains("native") || f.suffix.contains("native") =>
+        Some(PlatformExport.ScalaNative)
+      case _ => None
+    }
   }
 }

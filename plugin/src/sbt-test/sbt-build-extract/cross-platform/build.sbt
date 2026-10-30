@@ -1,18 +1,23 @@
-import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
-
-lazy val foo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
-  .crossType(CrossType.Pure)
+lazy val foo = (projectMatrix in file("."))
   .settings(
     scalaVersion := "2.13.16",
-    libraryDependencies += "com.lihaoyi" %%% "upickle" % "4.1.0"
+    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.1.0"
   )
-  .jvmSettings(
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
+  .jvmPlatform(
+    scalaVersions = Seq("2.13.16"),
+    settings = Seq(
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
+    )
   )
-  .jsSettings(
-    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "2.8.0"
+  .jsPlatform(
+    scalaVersions = Seq("2.13.16"),
+    settings = Seq(
+      libraryDependencies += "org.scala-js" %% "scalajs-dom" % "2.8.0"
+    )
   )
-  .nativeSettings(
-    libraryDependencies += "com.lihaoyi" %%% "fansi" % "0.5.0"
+  .nativePlatform(
+    scalaVersions = Seq("2.13.16"),
+    settings = Seq(
+      libraryDependencies += "com.lihaoyi" %% "fansi" % "0.5.0"
+    )
   )
