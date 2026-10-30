@@ -25,10 +25,6 @@ lazy val core = (project in file("core"))
     name := "sbt-build-extract-core",
     description := "Core models for sbt-build-extract",
     crossScalaVersions := List(scala212, scala213, scala3),
-    externalResolvers := {
-      val configuredResolvers = appResolvers.value.toSeq.flatten ++ resolvers.value
-      Resolver.defaultLocal +: configuredResolvers
-    },
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "upickle" % "4.1.0"
     )
@@ -39,10 +35,6 @@ lazy val plugin = (project in file("plugin"))
   .settings(
     name := "sbt-build-extract",
     description := "Sbt plugin for extracting build information",
-    externalResolvers := {
-      val configuredResolvers = appResolvers.value.toSeq.flatten ++ resolvers.value
-      Resolver.defaultLocal +: configuredResolvers
-    },
     pluginCrossBuild / sbtVersion := "2.0.0",
     scriptedSbt := "2.0.12",
     scriptedLaunchOpts := {
