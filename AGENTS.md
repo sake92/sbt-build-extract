@@ -4,18 +4,18 @@
 
 Two sbt subprojects:
 - **`core/`** — library (`sbt-build-extract-core`), cross-published for 2.12/2.13/3. Holds the data model case classes with `upickle` JSON serialization.
-- **`plugin/`** — sbt plugin (`sbt-build-extract`), compiled for 2.12 only (`sbtPlugin := true`). Depends on `core`. The `AutoPlugin` that reads sbt settings and writes JSON to `target/build-export/<id>.json`.
+- **`plugin/`** — sbt 2 plugin (`sbt-build-extract`), compiled with Scala 3.8.4 via `SbtPlugin`. Depends on `core`. The `AutoPlugin` reads sbt settings and writes JSON to `target/build-export/<id>.json`.
 
-Root `build.sbt` sets `ThisBuild / scalaVersion := scala212` (2.12.18).
+Root `build.sbt` sets `ThisBuild / scalaVersion := scala3` (3.8.4); `core` remains cross-published for 2.12.18, 2.13.16, and 3.8.4.
 
 ## Development commands
 
 ```bash
 sbt compile                    # compile all projects
-sbt plugin/compile             # compile just the plugin
-sbt test                       # unit tests (none currently)
-sbt plugin/scripted            # run all scripted integration tests
-sbt "plugin/scripted sbt-build-extract/cross-platform"  # run a single scripted test
+sbt 'plugin / Compile / compile' # compile just the plugin
+sbt test                          # unit tests (none currently)
+sbt 'plugin / scripted'           # run all scripted integration tests
+sbt 'plugin / scripted sbt-build-extract/cross-platform' # run one scripted test
 ```
 
 ## Scripted tests
@@ -42,19 +42,19 @@ The `test` script file uses sbt's scripted DSL:
 
 When iterating `project.dependencies`, `dep.project` is a `ProjectRef` (not a String). Use `dep.project.project` to get the project ID string.
 
-### platformOpt: detect from `CrossVersion.prefix`, NOT `dep.name`
+### platformOpt: use sbt 2 platform metadata, not `dep.name`
 
-The `platformOpt` heuristic checks the `prefix` and `suffix` fields of `CrossVersion.Binary`/`CrossVersion.Full`:
+In sbt 2, `ModuleID.platformOpt` and the project `platform` setting identify Scala.js and Scala Native dependencies. The exporter retains the `CrossVersion.prefix`/`suffix` fallback for older metadata:
 
-| Dependency | CrossVersion | prefix |
-|---|---|---|
-| JVM `%%` | `Binary("", "")` | empty |
-| ScalaJS `%%%` | `Binary("_sjs1", "_3")` | contains `sjs` |
-| ScalaNative `%%%` | `Binary("_native0.4", "_3")` | contains `native` |
+| Dependency | sbt 2 metadata |
+|---|---|
+| JVM `%%` | project `platform` is empty |
+| ScalaJS `%%` | project `platform` contains `sjs` |
+| Scala Native `%%` | project `platform` contains `native` |
 
-Do NOT check `dep.name` — `ModuleID.name` is the bare artifact name and never contains platform suffixes.
+Do NOT check `dep.name` — `ModuleID.name` is the bare artifact name and does not contain platform suffixes.
 
 ## CI
 
-- **CI** (`.github/workflows/ci.yml`): runs `sbt test` + `sbt plugin/scripted` on push to main and PRs.
+- **CI** (`.github/workflows/ci.yml`): runs `sbt test` + `sbt 'plugin / scripted'` on push to main and PRs.
 - **Release** (`.github/workflows/release.yml`): runs `sbt ci-release` on tag push. Requires Sonatype + PGP secrets (managed by `sbt-ci-release` plugin).

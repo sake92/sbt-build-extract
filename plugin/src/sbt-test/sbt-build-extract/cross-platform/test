@@ -2,15 +2,22 @@
 > exportAllBuildStructures
 
 # Verify all three JSON files exist
-$ exists target/build-export/fooJVM_2.13.16.json
-$ exists target/build-export/fooJS_2.13.16.json
-$ exists target/build-export/fooNative_2.13.16.json
+$ exists target/build-export/foo2_13_2.13.16.json
+$ exists target/build-export/fooJS2_13_2.13.16.json
+$ exists target/build-export/fooNative2_13_2.13.16.json
 
 # JVM project: must NOT contain any platform markers
-$ exec sh -c '! grep -qE "\"platformOpt\":\"(ScalaJS|ScalaNative)\"" target/build-export/fooJVM_2.13.16.json'
+$ exec sh -c '! grep -qE "\"platformOpt\":\"(ScalaJS|ScalaNative)\"" target/build-export/foo2_13_2.13.16.json'
 
 # JS project: must contain ScalaJS platform marker
-$ exec grep -q '"platformOpt":"ScalaJS"' target/build-export/fooJS_2.13.16.json
+$ exec grep -q '"platformOpt":"ScalaJS"' target/build-export/fooJS2_13_2.13.16.json
 
 # Native project: must contain ScalaNative platform marker
-$ exec grep -q '"platformOpt":"ScalaNative"' target/build-export/fooNative_2.13.16.json
+$ exec grep -q '"platformOpt":"ScalaNative"' target/build-export/fooNative2_13_2.13.16.json
+
+# The export task is uncached: it must recreate deleted output on a second run
+$ delete target/build-export/foo2_13_2.13.16.json target/build-export/fooJS2_13_2.13.16.json target/build-export/fooNative2_13_2.13.16.json
+> exportAllBuildStructures
+$ exists target/build-export/foo2_13_2.13.16.json
+$ exists target/build-export/fooJS2_13_2.13.16.json
+$ exists target/build-export/fooNative2_13_2.13.16.json
